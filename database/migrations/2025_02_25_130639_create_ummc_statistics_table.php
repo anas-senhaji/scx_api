@@ -14,10 +14,12 @@ class CreateUmmcStatisticsTable extends Migration
     public function up()
     {
         Schema::create('ummc_statistics', function (Blueprint $table) {
+            $table->id();
             $table->uuid('uuid');
             $table->date('date');
             $table->float('nbr_consultation')->nullable();
             $table->float('nbr_medicament_prescrit')->nullable();
+            $table->float('nbr_prescription')->nullable();
             $table->float('taux_prescription')->nullable();
             $table->float('nbr_dispentation')->nullable();
             $table->float('taux_adoption')->nullable();
@@ -36,6 +38,7 @@ class CreateUmmcStatisticsTable extends Migration
             $table->float('taux_disponibilite_c')->nullable();
             $table->unsignedBigInteger('ummc_id')->nullable();
             $table->foreign('ummc_id')->references('id')->on('ummcs')->onDelete("SET NULL");
+            $table->timestamps();
         });
     }
 

@@ -2,19 +2,19 @@
 
 namespace App\Modules\ULC\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Imports\UlcsUmmcsImport;
+use App\Http\Controllers\Controller;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ULCController extends Controller
 {
-
-    /**
-     * Display the module welcome screen
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function welcome()
+    public function import(Request $request)
     {
-        return view("ULC::welcome");
+        $request->validate([
+            'file' => 'required|mimes:xlsx,csv'
+        ]);
+
+        Excel::import(new UlcsUmmcsImport, $request->file('file'));
     }
 }
