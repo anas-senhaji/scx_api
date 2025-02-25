@@ -4,11 +4,19 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Database\Seeders\RoleSeeder;
+use Database\Seeders\TeamSeeder;
 use Database\Seeders\UserSeeder;
+use Database\Seeders\EventSeeder;
 use Database\Seeders\GroupeSeeder;
+use Database\Seeders\PlayerSeeder;
+use Database\Seeders\CountrySeeder;
+use Database\Seeders\OrganizerSeeder;
 use Database\Seeders\TypeCongeSeeder;
+use Database\Seeders\DisciplineSeeder;
+use Database\Seeders\TournamentSeeder;
 use Database\Seeders\JoursFeriesSeeder;
 use Database\Seeders\JoursTravailSeeder;
+use Database\Seeders\TournamentTypeSeeder;
 use Database\Seeders\WorkflowValidationSeeder;
 use Database\Seeders\ParametrageDeValeurSeeder;
 
@@ -23,14 +31,22 @@ class DatabaseSeeder extends Seeder
     {
         // \App\Models\User::factory(10)->create();
         $this->call(RoleSeeder::class);
-        $this->call(WorkflowValidationSeeder::class);
-        $this->call(UserSeeder::class);
-        $this->call(GroupeSeeder::class);
-        $this->call(DepartementSeeder::class);
-        $this->call(CollaborateurSeeder::class);
-        $this->call(JoursFeriesSeeder::class);
-        $this->call(JoursTravailSeeder::class);
-        $this->call(TypeCongeSeeder::class);
-        $this->call(ParametrageDeValeurSeeder::class);
+        $this->call(CountrySeeder::class);
+        $this->call(OrganizerSeeder::class);
+        $this->call(PlayerSeeder::class);
+        $this->call(DisciplineSeeder::class);
+        $this->call(TournamentTypeSeeder::class);
+        $this->call(EventSeeder::class);
+        $this->call(TournamentSeeder::class);
+        $this->call(TeamSeeder::class);
+        // $this->call(WorkflowValidationSeeder::class);
+        // $this->call(UserSeeder::class);
+        // $this->call(GroupeSeeder::class);
+        // $this->call(DepartementSeeder::class);
+        // $this->call(CollaborateurSeeder::class);
+        // $this->call(JoursFeriesSeeder::class);
+        // $this->call(JoursTravailSeeder::class);
+        // $this->call(TypeCongeSeeder::class);
+        // $this->call(ParametrageDeValeurSeeder::class);
     }
 }

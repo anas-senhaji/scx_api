@@ -26,6 +26,8 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'userable_id',
+        'userable_type',
     ];
 
     /**
@@ -51,9 +53,8 @@ class User extends Authenticatable implements JWTSubject
         $this->attributes['password'] = bcrypt($password);
     }
 
-
-    public function collaborateur(){
-        return $this->belongsTo(Collaborateur::class);
+    public function userable(){
+        return $this->morphTo();
     }
 
     public function role(){
