@@ -11,6 +11,7 @@ use App\Modules\Statistic\Models\UlcStatistic;
 
 use App\Modules\Statistic\Models\UmmcStatistic;
 use App\Modules\Statistic\Services\StatisticService;
+use Carbon\Carbon;
 
 class StatisticController extends Controller
 {
@@ -29,8 +30,8 @@ class StatisticController extends Controller
     public function fetch(Request $request)
     {
         $filters = $request->all();
-        $startDate = $filters["start_date"];
-        $endDate = $filters["end_date"];
+        $startDate = $filters["start_date"] ?? null;
+        $endDate = $filters["end_date"] ?? null;
         $type = $filters["type"];
         if($type == 'ulc')
         {
@@ -58,7 +59,7 @@ class StatisticController extends Controller
             ->groupBy('date')
             ->orderBy('date', 'asc')
             ->get();
-            dd($data);
+            return $this->jsonResponse(true, 200, 200, $data);
         }
         else
         {
@@ -90,7 +91,7 @@ class StatisticController extends Controller
             ->groupBy('date')
             ->orderBy('date', 'asc')
             ->get();
-            dd($data);
+            return $this->jsonResponse(true, 200, 200, $data);
 
         }
 

@@ -7,4 +7,5 @@ use App\Modules\ULC\Http\Controllers\ULCController;
 Route::group(['prefix' => 'api'], function () {
 
     Route::post('ulc/import', [ULCController::class, 'import']);
+    Route::get('ulcs', [ULCController::class, 'getAll']);
 });

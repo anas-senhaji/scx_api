@@ -2,6 +2,7 @@
 
 namespace App\Modules\ULC\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Modules\UMMC\Http\Resources\UMMCCollection;
 
 class ULCResource extends JsonResource
 {
@@ -16,6 +17,11 @@ class ULCResource extends JsonResource
         return [
             'id' => $this->id,
             'uuid' => $this->uuid,
+            'name' => $this->name,
+            'position_x' => $this->position_x,
+            'position_y' => $this->position_y,
+            'position' => $this->position_x.', '.$this->position_y,
+            'ummcs' => new UMMCCollection($this->whenLoaded('ummcs')),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];

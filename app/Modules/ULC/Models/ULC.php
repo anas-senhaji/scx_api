@@ -17,10 +17,17 @@ class ULC extends Model
     protected $guarded = ['id'];
 
     public function ummcs(){
-        return $this->hasMany(UMMC::class);
+        return $this->hasMany(UMMC::class, "ulc_id");
     }
 
     public function statistics(){
         return $this->hasMany(UlcStatistic::class);
+    }
+
+    public static function relations($getOne = false){
+        return $getOne 
+            ? ['ummcs']
+            : ['ummcs'];
+            
     }
 }

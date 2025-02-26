@@ -16,6 +16,9 @@ class UMMCResource extends JsonResource
         return [
             'id' => $this->id,
             'uuid' => $this->uuid,
+            'position_x' => $this->position_x,
+            'position_y' => $this->position_y,
+            'position' => $this->position_x.', '.$this->position_y,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];
