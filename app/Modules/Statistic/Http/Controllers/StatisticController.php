@@ -101,42 +101,42 @@ class StatisticController extends Controller
     public function fetchUclTauxByYear(Request $request) {
         // Récupérer les paramètres de la requête
         $filters = $request->all();
-        $year = $filters['year'] ?? Carbon::now()->year;
+        $startDate = $filters["start_date"] ?? null;
+        $endDate = $filters["end_date"] ?? null;
         $tauxList = $filters['taux'] ?? [
             'taux_peremption', 'taux_occupation', 'taux_proche_perime', 
             'taux_rupture', 'taux_disponibilite_a', 'taux_disponibilite_b', 'taux_disponibilite_c'
         ];
     
         // Construire la requête pour récupérer les moyennes des taux groupées par mois et par ULC
-        $query = UlcStatistic::whereYear('date', $year)
-            ->selectRaw('EXTRACT(MONTH FROM date) as month, ulc_id')
+        $query = UlcStatistic::whereBetween('date', [$startDate, $endDate])
+            ->selectRaw('DATE(date) as date, ulc_id') // Grouping by full date
             ->with('ulcs'); // Eager load the related ULC data
     
         foreach ($tauxList as $taux) {
             $query->addSelect(DB::raw("COALESCE(AVG($taux), 0) as $taux"));
         }
     
-        // Exécuter la requête et grouper par mois et ulc_id
-        $data = $query->groupBy('month', 'ulc_id')->orderBy('month', 'asc')->get();
+        // Exécuter la requête et grouper par date et ulc_id
+        $data = $query->groupBy('date', 'ulc_id')->orderBy('date', 'asc')->get();
     
-        // Organiser les données sous format { month: 1, ulc: [{ ulc_id: 1, taux_peremption: 2.5, taux_rupture: 1.2, ulc_name: 'ULC A' }] }
-        $groupedData = collect(range(1, 12))->map(function ($month) use ($data, $tauxList) {
+        // Organiser les données sous format { date: 'YYYY-MM-DD', ulc: [{ ulc_id: 1, taux_peremption: 2.5, taux_rupture: 1.2, ulc_name: 'ULC A' }] }
+        $groupedData = $data->groupBy('date')->map(function ($items, $date) use ($tauxList) {
             return [
-                'month' => $month,
-                'ulc' => $data->where('month', $month)->map(function ($item) use ($tauxList) {
+                'date' => $date,
+                'ulc' => $items->map(function ($item) use ($tauxList) {
                     // Get the ULC name from the relationship
-                    // not worked
-                    $UCL = ULC::find($item->ulc_id);
-                    $formatted = ['ulc_id' => $item->ulc_id, 'ulc_name' => $UCL->name ?? 'Unknown', 'ulc_color' => $UCL->color];
-                    
-                    foreach ($tauxList as $taux) {
-                        $formatted[$taux] = $item->$taux ?? 0;
-                    }
-                    return $formatted;
+                    $UCL = ULC::find($item->ulc_id); // Since we used `with('ulcs')`, the related ULC should already be loaded.
+                    return [
+                        'ulc_id' => $item->ulc_id,
+                        'ulc_name' => $UCL->name ?? 'Unknown',
+                        'ulc_color' => $UCL->color ?? null,
+                        ...collect($tauxList)->mapWithKeys(fn ($taux) => [$taux => $item->$taux ?? 0])->toArray(),
+                    ];
                 })->values(),
             ];
-        });
-    
+        })->values();
+
         return $this->jsonResponse(true, 200, 200, $groupedData);
     }
     
