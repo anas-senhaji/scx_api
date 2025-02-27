@@ -2,16 +2,17 @@
 
 namespace App\Modules\Statistic\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Traits\CustomResponse;
+use App\Modules\ULC\Models\ULC;
 use App\Modules\UMMC\Models\UMMC;
 use Illuminate\Support\Facades\DB;
+
 use App\Http\Controllers\Controller;
 use App\Modules\Statistic\Models\UlcStatistic;
-
 use App\Modules\Statistic\Models\UmmcStatistic;
 use App\Modules\Statistic\Services\StatisticService;
-use Carbon\Carbon;
 
 class StatisticController extends Controller
 {
@@ -47,12 +48,12 @@ class StatisticController extends Controller
             }
 
             $data = $query->select(
-                'date',
+                DB::raw("TO_CHAR(date, 'DD/MM/YYYY') as date"),
                 DB::raw('AVG(taux_peremption) as taux_peremption'),
                 DB::raw('AVG(taux_occupation) as taux_occupation'),
-                DB::raw('AVG(taux_proche_perimes) as taux_proche_perimes'),
+                DB::raw('AVG(taux_proche_perime) as taux_proche_perime'),
                 DB::raw('AVG(taux_rupture) as taux_rupture'),
-                DB::raw('AVG(taux_proche_penuerie) as taux_disponibilite_a'),
+                DB::raw('AVG(taux_disponibilite_a) as taux_disponibilite_a'),
                 DB::raw('AVG(taux_disponibilite_b) as taux_disponibilite_b'),
                 DB::raw('AVG(taux_disponibilite_c) as taux_disponibilite_c'),
             )
@@ -75,7 +76,7 @@ class StatisticController extends Controller
             }
 
             $data = $query->select(
-                'date',
+                DB::raw("TO_CHAR(date, 'DD/MM/YYYY') as date"),
                 DB::raw('AVG(taux_prescription) as taux_prescription'),
                 DB::raw('AVG(taux_adoption) as taux_adoption'),
                 DB::raw('AVG(taux_couverture) as taux_couverture'),
@@ -102,7 +103,7 @@ class StatisticController extends Controller
         $filters = $request->all();
         $year = $filters['year'] ?? Carbon::now()->year;
         $tauxList = $filters['taux'] ?? [
-            'taux_peremption', 'taux_occupation', 'taux_proche_perimes', 
+            'taux_peremption', 'taux_occupation', 'taux_proche_perime', 
             'taux_rupture', 'taux_disponibilite_a', 'taux_disponibilite_b', 'taux_disponibilite_c'
         ];
     
@@ -125,7 +126,8 @@ class StatisticController extends Controller
                 'ulc' => $data->where('month', $month)->map(function ($item) use ($tauxList) {
                     // Get the ULC name from the relationship
                     // not worked
-                    $formatted = ['ulc_id' => $item->ulc_id, 'ulc_name' => $item->ulcs->name ?? 'Unknown'];
+                    $UCL = ULC::find($item->ulc_id);
+                    $formatted = ['ulc_id' => $item->ulc_id, 'ulc_name' => $UCL->name ?? 'Unknown', 'ulc_color' => $UCL->color];
                     
                     foreach ($tauxList as $taux) {
                         $formatted[$taux] = $item->$taux ?? 0;

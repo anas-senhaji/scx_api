@@ -23,7 +23,7 @@ class CreateUlcStatisticsTable extends Migration
             $table->float('capacite')->nullable();
             $table->float('taux_occupation')->nullable();
             $table->float('taux_peremption')->nullable();
-            $table->float('taux_proche_perimes')->nullable();
+            $table->float('taux_proche_perime')->nullable();
             $table->float('taux_rupture')->nullable();
             $table->float('taux_proche_penuerie')->nullable();
             $table->float('taux_disponibilite_a')->nullable();

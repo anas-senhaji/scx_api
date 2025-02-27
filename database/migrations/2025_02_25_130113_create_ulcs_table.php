@@ -19,6 +19,7 @@ class CreateUlcsTable extends Migration
             $table->string('name');
             $table->string('position_x');
             $table->string('position_y');
+            $table->string('color')->nullable();
             $table->timestamps();
         });
     }
