@@ -21,13 +21,13 @@ class UMMC extends Model
     }
 
     public function statistics(){
-        return $this->hasMany(UmmcStatistic::class);
+        return $this->hasMany(UmmcStatistic::class, "ummc_id");
     }
 
     public static function relations($getOne = false){
         return $getOne 
-            ? ['ulc']
-            : ['ulc'];
+            ? ['ulc', 'statistics']
+            : ['ulc', 'statistics'];
             
     }
 }

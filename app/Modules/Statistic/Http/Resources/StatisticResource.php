@@ -16,6 +16,18 @@ class StatisticResource extends JsonResource
         return [
             'id' => $this->id,
             'uuid' => $this->uuid,
+            'date' => $this->date,
+            'taux_prescription' => $this->taux_prescription,
+            'taux_adoption' => $this->taux_adoption,
+            'taux_couverture' => $this->taux_couverture,
+            'taux_occupation' => $this->taux_occupation,
+            'taux_peremption' => $this->taux_peremption,
+            'taux_proche_perime' => $this->taux_proche_perime,
+            'taux_rupture' => $this->uutaux_ruptureid,
+            'taux_proche_penuerie' => $this->taux_proche_penuerie,
+            'taux_disponibilite_a' => $this->taux_disponibilite_a,
+            'taux_disponibilite_b' => $this->taux_disponibilite_b,
+            'taux_disponibilite_c' => $this->taux_disponibilite_c,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];
