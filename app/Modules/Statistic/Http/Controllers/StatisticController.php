@@ -110,7 +110,7 @@ class StatisticController extends Controller
     
         // Construire la requête pour récupérer les moyennes des taux groupées par mois et par ULC
         $query = UlcStatistic::whereBetween('date', [$startDate, $endDate])
-            ->selectRaw('DATE(date) as date, ulc_id') // Grouping by full date
+            ->selectRaw("TO_CHAR(date, 'DD/MM/YYYY') as date, ulc_id") // Grouping by full date
             ->with('ulcs'); // Eager load the related ULC data
     
         foreach ($tauxList as $taux) {
