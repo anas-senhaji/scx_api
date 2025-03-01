@@ -139,42 +139,52 @@ class StatisticController extends Controller
         $startDate = $filters["start_date"] ?? null;
         $endDate = $filters["end_date"] ?? null;
         $ulc_id = $filters['ulc_id'] ?? null;
-        $tauxList = $filters['taux'];
-        $ummc_ids = $ulc_id != null ? UMMC::where('ulc_id',$ulc_id)->get()->pluck('id') : [];
-            // Construire la requête pour récupérer les moyennes des taux groupées par mois et par ULC
-                $query = $ulc_id == null ? UlcStatistic::whereBetween('date', [$startDate, $endDate])
-                ->selectRaw("TO_CHAR(date, 'DD/MM/YYYY') as date, ulc_id") // Grouping by full date
-                ->with('ulcs') : UmmcStatistic::whereBetween('date', [$startDate, $endDate])
-                ->selectRaw("TO_CHAR(date, 'DD/MM/YYYY') as date, ummc_id")->whereIn('id',$ummc_ids) // Grouping by full date
-                ->with('ummcs'); // Eager load the related ULC data
-
-            foreach ($tauxList as $taux) {
-                $query->addSelect(DB::raw("COALESCE(AVG($taux), 0) as $taux"));
-            }
-
-            // Exécuter la requête et grouper par date et ulc_id
-            $data = $ulc_id == null ? $query->groupBy('date', 'ulc_id')->orderBy('date', 'asc')->get() : $query->groupBy('date', 'ummc_id')->orderBy('date', 'asc')->get();
-
-            // Organiser les données sous format { date: 'YYYY-MM-DD', ulc: [{ ulc_id: 1, taux_peremption: 2.5, taux_rupture: 1.2, ulc_name: 'ULC A' }] }
-            $groupedData = $data->groupBy('date')->map(function ($items, $date) use ($tauxList,$ulc_id) {
-                return [
-                    'date' => $date,
-                    'entity' => $items->map(function ($item) use ($tauxList,$ulc_id) {
-                        // Get the ULC name from the relationship
-                        $entity = $ulc_id == null ? ULC::find($item->ulc_id) : UMMC::find($item->ummc_id); // Since we used `with('ulcs')`, the related ULC should already be loaded.
-                        return [
-                            'entity_id' => $ulc_id == null ? $item->ulc_id : $item->ummc_id,
-                            'entity_name' => $entity->name ?? 'Unknown',
-                            'entity_color' => $entity->color ?? null,
-                            ...collect($tauxList)->mapWithKeys(fn ($taux) => [$taux => $item->$taux ?? 0])->toArray(),
-                        ];
-                    })->values(),
-                ];
-            })->values();   
-        
-
+        $tauxList = $filters['taux'] ?? [];
+    
+        $ummc_ids = $ulc_id != null ? UMMC::where('ulc_id', $ulc_id)->pluck('id') : [];
+    
+        // Construire la requête pour récupérer les moyennes des taux groupées par date et par ULC/UMMC
+        $query = $ulc_id == null ? UlcStatistic::whereBetween('date', [$startDate, $endDate])
+            ->selectRaw("TO_CHAR(date, 'DD/MM/YYYY') as date, ulc_id")
+            ->with('ulcs') 
+            : UmmcStatistic::whereBetween('date', [$startDate, $endDate])
+            ->selectRaw("TO_CHAR(date, 'DD/MM/YYYY') as date, ummc_id")
+            ->whereIn('ummc_id', $ummc_ids)
+            ->with('ummcs'); 
+    
+        foreach ($tauxList as $taux) {
+            $query->addSelect(DB::raw("COALESCE(AVG($taux), 0) as $taux"));
+        }
+    
+        // Exécuter la requête et grouper par date et ulc_id ou ummc_id
+        $data = $query->groupBy('date', $ulc_id == null ? 'ulc_id' : 'ummc_id')->orderBy('date', 'asc')->get();
+    
+        // Vérification si toutes les dates sont présentes
+        if ($data->isEmpty()) {
+            return $this->jsonResponse(true, 200, 200, []);
+        }
+    
+        // Organiser les données par date
+        $groupedData = $data->groupBy('date')->map(function ($items, $date) use ($tauxList, $ulc_id) {
+            return [
+                'date' => $date,
+                'entity' => $items->map(function ($item) use ($tauxList, $ulc_id) {
+                    // Récupérer l'entité directement depuis la relation chargée
+                    $entity = $ulc_id == null ? ULC::find($item->ulc_id) : UMMC::find($item->ummc_id); 
+    
+                    return [
+                        'entity_id' => $ulc_id == null ? $item->ulc_id : $item->ummc_id,
+                        'entity_name' => $entity->name ?? 'Unknown',
+                        'entity_color' => $entity->color ?? null,
+                        ...collect($tauxList)->mapWithKeys(fn ($taux) => [$taux => $item->$taux ?? 0])->toArray(),
+                    ];
+                })->values(),
+            ];
+        })->values();
+    
         return $this->jsonResponse(true, 200, 200, $groupedData);
     }
+    
     
     
 }
