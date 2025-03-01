@@ -12,7 +12,7 @@ services:
       - '.:/var/www/html'
       - '/var/www/html/vendor'
     ports:
-      - "8000:80"
+      - "6666:80"
     depends_on:
       - tournoi_db
     networks:
@@ -24,7 +24,7 @@ services:
     container_name: 'tournoi_db'
     restart: always
     ports:
-      - "54321:5432"
+      - "54326:5432"
     environment:
       POSTGRES_PASSWORD: tournoi
     networks:
@@ -35,7 +35,7 @@ services:
     container_name: 'tournoipostgresadmin'
     restart: always
     ports:
-      - "5050:80"
+      - "6060:80"
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@tournoi.ma
       PGADMIN_DEFAULT_PASSWORD: tournoi
