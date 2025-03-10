@@ -51,7 +51,7 @@ class StatisticController extends Controller
                 }
     
                 $data = $query->select(
-                    DB::raw("TO_CHAR(date, 'DD/MM/YYYY') as date"),
+                    DB::raw("TO_CHAR(date, 'DD/MM/YYYY') as formatted_date"),
                     DB::raw('AVG(taux_peremption) as taux_peremption'),
                     DB::raw('AVG(taux_occupation) as taux_occupation'),
                     DB::raw('AVG(taux_proche_perime) as taux_proche_perime'),
@@ -60,7 +60,7 @@ class StatisticController extends Controller
                     DB::raw('AVG(taux_disponibilite_b) as taux_disponibilite_b'),
                     DB::raw('AVG(taux_disponibilite_c) as taux_disponibilite_c'),
                 )
-                ->groupBy('date')
+                ->groupBy(DB::raw("DATE(date)"))
                 ->orderBy('date', 'asc')
                 ->get();
                 return $this->jsonResponse(true, 200, 200, $data);
@@ -79,10 +79,10 @@ class StatisticController extends Controller
                 }
     
                 $data = $query->select(
-                    DB::raw("TO_CHAR(date, 'DD/MM/YYYY') as date"),
+                    DB::raw("TO_CHAR(date, 'DD/MM/YYYY') as formatted_date"),
                     DB::raw('AVG(taux_prescription) as taux_prescription'),
-                    DB::raw('AVG(taux_adoption) as taux_adoption'),
-                    DB::raw('AVG(taux_couverture) as taux_couverture'),
+                    DB::raw('AVG(taux_service_ordonnance) as taux_service_ordonnance'),
+                    DB::raw('AVG(taux_service_medicament) as taux_service_medicament'),
                     DB::raw('AVG(taux_occupation) as taux_occupation'),
                     DB::raw('AVG(taux_peremption) as taux_peremption'),
                     DB::raw('AVG(taux_proche_perime) as taux_proche_perime'),
@@ -92,7 +92,7 @@ class StatisticController extends Controller
                     DB::raw('AVG(taux_disponibilite_b) as taux_disponibilite_b'),
                     DB::raw('AVG(taux_disponibilite_c) as taux_disponibilite_c'),
                 )
-                ->groupBy('date')
+                ->groupBy(DB::raw("DATE(date)"))
                 ->orderBy('date', 'asc')
                 ->get();
                 return $this->jsonResponse(true, 200, 200, $data);
@@ -112,10 +112,10 @@ class StatisticController extends Controller
                 }
     
                 $data = $query->select(
-                    DB::raw("TO_CHAR(date, 'DD/MM/YYYY') as date"),
+                    DB::raw("TO_CHAR(date, 'DD/MM/YYYY') as formatted_date"),
                     DB::raw('AVG(taux_prescription) as taux_prescription'),
-                    DB::raw('AVG(taux_adoption) as taux_adoption'),
-                    DB::raw('AVG(taux_couverture) as taux_couverture'),
+                    DB::raw('AVG(taux_service_ordonnance) as taux_service_ordonnance'),
+                    DB::raw('AVG(taux_service_medicament) as taux_service_medicament'),
                     DB::raw('AVG(taux_occupation) as taux_occupation'),
                     DB::raw('AVG(taux_peremption) as taux_peremption'),
                     DB::raw('AVG(taux_proche_perime) as taux_proche_perime'),
@@ -125,7 +125,7 @@ class StatisticController extends Controller
                     DB::raw('AVG(taux_disponibilite_b) as taux_disponibilite_b'),
                     DB::raw('AVG(taux_disponibilite_c) as taux_disponibilite_c'),
                 )
-                ->groupBy('date')
+                ->groupBy(DB::raw("DATE(date)"))
                 ->orderBy('date', 'asc')
                 ->get();
                 return $this->jsonResponse(true, 200, 200, $data);
@@ -140,34 +140,37 @@ class StatisticController extends Controller
         $endDate = $filters["end_date"] ?? null;
         $ulc_id = $filters['ulc_id'] ?? null;
         $tauxList = $filters['taux'] ?? [];
-    
+        
         $ummc_ids = $ulc_id != null ? UMMC::where('ulc_id', $ulc_id)->pluck('id') : [];
-    
+        
         // Construire la requête pour récupérer les moyennes des taux groupées par date et par ULC/UMMC
         $query = $ulc_id == null ? UlcStatistic::whereBetween('date', [$startDate, $endDate])
-            ->selectRaw("TO_CHAR(date, 'DD/MM/YYYY') as date, ulc_id")
+            ->select('date', 'ulc_id')  // Directly select the date field (no TO_CHAR here)
             ->with('ulcs') 
             : UmmcStatistic::whereBetween('date', [$startDate, $endDate])
-            ->selectRaw("TO_CHAR(date, 'DD/MM/YYYY') as date, ummc_id")
+            ->select('date', 'ummc_id')  // Directly select the date field (no TO_CHAR here)
             ->whereIn('ummc_id', $ummc_ids)
             ->with('ummcs'); 
     
         foreach ($tauxList as $taux) {
             $query->addSelect(DB::raw("COALESCE(AVG($taux), 0) as $taux"));
         }
-    
+        
         // Exécuter la requête et grouper par date et ulc_id ou ummc_id
-        $data = $query->groupBy('date', $ulc_id == null ? 'ulc_id' : 'ummc_id')->orderBy('date', 'asc')->get();
-    
+        $data = $query->groupBy('date', $ulc_id == null ? 'ulc_id' : 'ummc_id')
+            ->orderBy('date', 'asc') // This will order by the actual date
+            ->get();
+        
         // Vérification si toutes les dates sont présentes
         if ($data->isEmpty()) {
             return $this->jsonResponse(true, 200, 200, []);
         }
-    
+        
         // Organiser les données par date
         $groupedData = $data->groupBy('date')->map(function ($items, $date) use ($tauxList, $ulc_id) {
             return [
                 'date' => $date,
+                'formatted_date' => Carbon::parse($date)->format('d/m/Y'),  // Add formatted date here
                 'entity' => $items->map(function ($item) use ($tauxList, $ulc_id) {
                     // Récupérer l'entité directement depuis la relation chargée
                     $entity = $ulc_id == null ? ULC::find($item->ulc_id) : UMMC::find($item->ummc_id); 
@@ -181,9 +184,10 @@ class StatisticController extends Controller
                 })->values(),
             ];
         })->values();
-    
+        
         return $this->jsonResponse(true, 200, 200, $groupedData);
     }
+    
     
     
     
