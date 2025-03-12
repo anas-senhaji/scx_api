@@ -194,20 +194,41 @@ class StatisticController extends Controller
         $startDate = $filters["start_date"] ?? null;
         $endDate = $filters["end_date"] ?? null;
         $ulc_id = $filters['ulc_id'] ?? null;
-        $tauxList = $filters['taux'] ?? [];
+        $tauxList = $ulc_id == null ? [
+            'taux_occupation','taux_peremption','taux_proche_perime','taux_rupture','taux_disponibilite_a','taux_disponibilite_b','taux_disponibilite_c'
+        ] : [
+            'taux_occupation','taux_peremption','taux_proche_perime','taux_rupture','taux_proche_penuerie','taux_disponibilite_a','taux_disponibilite_b',
+            'taux_disponibilite_c', 'taux_prescription', 'taux_service_ordonnance', 'taux_service_medicament',
+        ];
     
         $ummc_ids = $ulc_id != null ? UMMC::where('ulc_id', $ulc_id)->pluck('id') : [];
     
         // Construire la requête pour récupérer les min et max des taux
         $query = $ulc_id == null ? UlcStatistic::whereBetween('date', [$startDate, $endDate])
-            ->select('ulc_id') : UmmcStatistic::whereBetween('date', [$startDate, $endDate])
+            ->select('ulc_id') : UmmcStatistic::whereBetween('date', [$startDate, $endDate])->whereIn('ummc_id', $ummc_ids)
             ->select('ummc_id');
+
+        // Start building subquery to calculate averages
+        $subQuery = $query;
+
+        foreach ($tauxList as $taux) {
+            $subQuery->addSelect(DB::raw("AVG($taux) as avg_$taux"));
+        }
+        $subQuery = $subQuery->groupBy($ulc_id == null ? 'ulc_id' : 'ummc_id');
+        // Now wrap the subquery to apply MIN and MAX to the averaged values
+        $query = DB::table(DB::raw("({$subQuery->toSql()}) as subquery"))
+        ->mergeBindings($subQuery->getQuery()) // Merges bindings (values for where clauses, etc.)
+        ->select($ulc_id == null ? 'subquery.ulc_id' : 'subquery.ummc_id')
+        ->addSelect('subquery.*');
     
         foreach ($tauxList as $taux) {
             $query->addSelect(
-                DB::raw("MIN($taux) as min_$taux"),
-                DB::raw("MAX($taux) as max_$taux")
+                DB::raw("MIN(subquery.avg_$taux) as min_$taux"),
+                DB::raw("MAX(subquery.avg_$taux) as max_$taux")
             );
+        }
+        foreach ($tauxList as $taux) {
+            $query->groupBy("subquery.avg_$taux");
         }
     
         $data = $query->groupBy($ulc_id == null ? 'ulc_id' : 'ummc_id')->get();
