@@ -22,9 +22,9 @@ class CreateUmmcStatisticsTable extends Migration
             $table->float('nbr_prescription')->nullable();
             $table->float('taux_prescription')->nullable();
             $table->float('nbr_dispentation')->nullable();
-            $table->float('taux_adoption')->nullable();
+            $table->float('taux_service_ordonnance')->nullable();
             $table->float('nbr_medicament_dispense')->nullable();
-            $table->float('taux_couverture')->nullable();
+            $table->float('taux_service_medicament')->nullable();
             $table->float('moyen_medicament_par_prescription')->nullable();
             $table->float('capacite')->nullable();
             $table->float('stock')->nullable();
