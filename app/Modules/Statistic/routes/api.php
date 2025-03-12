@@ -10,4 +10,5 @@ Route::group(['prefix' => 'api'], function () {
     Route::post('statistic/import', [StatisticController::class, 'import']);
     Route::post('statistic/fetch', [StatisticController::class, 'fetch']);
     Route::post('statistic/fetch/year', [StatisticController::class, 'fetchUclTauxByYear']);
+    Route::post('statistic/fetch/minmax',[StatisticController::class, 'fetchMinMaxTauxByYear']);
 });

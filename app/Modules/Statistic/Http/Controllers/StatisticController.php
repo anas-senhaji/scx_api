@@ -185,6 +185,56 @@ class StatisticController extends Controller
         return $this->jsonResponse(true, 200, 200, $groupedData);
     }
     
+    public function fetchMinMaxTauxByYear(Request $request) {
+        // Récupérer les paramètres de la requête
+        $filters = $request->all();
+        $startDate = $filters["start_date"] ?? null;
+        $endDate = $filters["end_date"] ?? null;
+        $ulc_id = $filters['ulc_id'] ?? null;
+        $tauxList = $filters['taux'] ?? [];
+    
+        $ummc_ids = $ulc_id != null ? UMMC::where('ulc_id', $ulc_id)->pluck('id') : [];
+    
+        // Construire la requête pour récupérer les min et max des taux
+        $query = $ulc_id == null ? UlcStatistic::whereBetween('date', [$startDate, $endDate])
+            ->select('ulc_id') : UmmcStatistic::whereBetween('date', [$startDate, $endDate])
+            ->select('ummc_id');
+    
+        foreach ($tauxList as $taux) {
+            $query->addSelect(
+                DB::raw("MIN($taux) as min_$taux"),
+                DB::raw("MAX($taux) as max_$taux")
+            );
+        }
+    
+        $data = $query->groupBy($ulc_id == null ? 'ulc_id' : 'ummc_id')->get();
+    
+        // Préparer les résultats sous le format demandé
+        $result = [];
+    
+        foreach ($tauxList as $taux) {
+            $minRecord = $data->where("min_$taux", $data->min("min_$taux"))->first();
+            $maxRecord = $data->where("max_$taux", $data->max("max_$taux"))->first();
+    
+            $minEntity = $ulc_id == null ? ULC::find($minRecord->ulc_id) : UMMC::find($minRecord->ummc_id);
+            $maxEntity = $ulc_id == null ? ULC::find($maxRecord->ulc_id) : UMMC::find($maxRecord->ummc_id);
+    
+            $result[$taux] = [
+                'min' => [
+                    'entity_name' => $minEntity->name ?? 'Unknown',
+                    'entity_id' => $minEntity->id ?? null,
+                    'value' => $minRecord->{"min_$taux"} ?? 0
+                ],
+                'max' => [
+                    'entity_name' => $maxEntity->name ?? 'Unknown',
+                    'entity_id' => $maxEntity->id ?? null,
+                    'value' => $maxRecord->{"max_$taux"} ?? 0
+                ]
+            ];
+        }
+    
+        return $this->jsonResponse(true, 200, 200, $result);
+    }
     
     
 }
