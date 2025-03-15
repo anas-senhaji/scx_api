@@ -7,6 +7,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\UlcUmmcStatisticImport;
 use Illuminate\Support\Facades\Validator;
 use App\Modules\Statistic\Models\Statistic;
+use App\Modules\Statistic\Models\UlcStatistic;
+use App\Modules\Statistic\Models\UmmcStatistic;
 
 class StatisticService
 {
@@ -15,6 +17,10 @@ class StatisticService
 
     public function import($request)
     {
+        if($request->isEcraser == true){
+            UmmcStatistic::query()->delete();
+            UlcStatistic::query()->delete();
+        }
         Excel::import(new UlcUmmcStatisticImport, $request->file('file'));
     }
 }
