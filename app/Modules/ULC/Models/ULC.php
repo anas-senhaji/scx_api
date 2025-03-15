@@ -5,6 +5,7 @@ namespace App\Modules\ULC\Models;
 use App\Traits\HasUuid;
 use App\Traits\HasHorodatage;
 use App\Modules\UMMC\Models\UMMC;
+use App\Modules\Location\Models\Region;
 use Illuminate\Database\Eloquent\Model;
 use App\Modules\Statistic\Models\UlcStatistic;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,6 +23,10 @@ class ULC extends Model
 
     public function statistics(){
         return $this->hasMany(UlcStatistic::class, "ulc_id");
+    }
+
+    public function region(){
+        return $this->belongsTo(Region::class);
     }
 
     public static function relations($getOne = false){
