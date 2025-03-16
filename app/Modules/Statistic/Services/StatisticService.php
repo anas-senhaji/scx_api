@@ -17,10 +17,24 @@ class StatisticService
 
     public function import($request)
     {
-        if($request->isEcraser == true){
-            UmmcStatistic::query()->delete();
-            UlcStatistic::query()->delete();
+
+        try {
+            // Begin a database transaction
+            DB::beginTransaction();
+
+            if($request->isEcraser == true){
+                UmmcStatistic::query()->delete();
+                UlcStatistic::query()->delete();
+            }
+            Excel::import(new UlcUmmcStatisticImport, $request->file('file'));
+            
+            // Commit the database transaction
+            DB::commit();
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            return $this->jsonResponse(false, 500, 500, $e->getMessage());
         }
-        Excel::import(new UlcUmmcStatisticImport, $request->file('file'));
+        
     }
 }
