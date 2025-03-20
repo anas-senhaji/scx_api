@@ -11,6 +11,7 @@ class DciController extends Controller
 {
     public function import(Request $request)
     {
+        set_time_limit(300);
         $request->validate([
             'file' => 'required|mimes:xlsx,csv'
         ]);
