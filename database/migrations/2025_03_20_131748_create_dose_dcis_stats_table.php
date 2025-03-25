@@ -20,9 +20,13 @@ class CreateDoseDcisStatsTable extends Migration
             $table->float('consommation')->nullable();
             $table->float('prevision')->nullable();
             $table->float('ecart')->nullable();
-            $table->unsignedBigInteger('dose_dcis_id')->nullable();
             $table->string('fullname');
+            $table->unsignedBigInteger('dose_dcis_id')->nullable();
             $table->foreign('dose_dcis_id')->references('id')->on('dose_dcis')->onDelete("SET NULL");
+            $table->unsignedBigInteger('ummc_id')->nullable();
+            $table->foreign('ummc_id')->references('id')->on('ummcs')->onDelete("SET NULL");
+            $table->unsignedBigInteger('dci_id')->nullable();
+            $table->foreign('dci_id')->references('id')->on('dcis')->onDelete("SET NULL");
             $table->timestamps();
         });
     }

@@ -5,6 +5,7 @@ namespace App\Modules\UMMC\Models;
 use App\Traits\HasUuid;
 use App\Traits\HasHorodatage;
 use App\Modules\ULC\Models\ULC;
+use App\Modules\Dci\Models\DoseDciStat;
 use Illuminate\Database\Eloquent\Model;
 use App\Modules\Statistic\Models\UmmcStatistic;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,6 +23,10 @@ class UMMC extends Model
 
     public function statistics(){
         return $this->hasMany(UmmcStatistic::class, "ummc_id");
+    }
+
+    public function dosedecistats(){
+        return $this->hasMany(DoseDciStat::class, "ummc_id");
     }
 
     public static function relations($getOne = false){

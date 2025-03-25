@@ -18,4 +18,8 @@ class DoseDciStat extends Model
     public function dosedcis(){
         return $this->belongsTo(DoseDci::class);
     }
+
+    public function ummcs(){
+        return $this->belongsTo(UMMC::class);
+    }
 }
