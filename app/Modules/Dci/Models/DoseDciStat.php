@@ -28,6 +28,22 @@ class DoseDciStat extends Model
         return $this->belongsTo(UMMC::class);
     }
 
+    public function scopeByStartDate($query, $start_date = null)
+    {
+        if($start_date){
+            return $query->where('date','>=', $start_date);
+        }
+        return $query;
+    }
+
+    public function scopeByEndDate($query, $end_date = null)
+    {
+        if($end_date){
+            return $query->where('date','<=',$end_date);
+        }
+        return $query;
+    }
+
     public function scopeByDci($query, $dci_id = null)
     {
         if($dci_id){

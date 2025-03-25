@@ -41,6 +41,8 @@ class DciService
         $request = $request->all();
         
         $data = DoseDciStat::with('dci')->scopes([
+            'ByStartDate' => $request['start_date'] ?? null,
+            'ByEndDate' => $request['end_date'] ?? null,
             'ByDci' => $request['dci_id'] ?? null,
             'ByDoseDci' => $request['dose_dcis_id'] ?? null,
             'ByUmmc' => $request['ummc_id'] ?? null
