@@ -14,6 +14,7 @@ class Dci extends Model
     use HasFactory, HasUuid, HasHorodatage;
     protected $table = 'dcis';
     protected $guarded = ['id'];
+    protected $with = ['dosedcis'];
 
     public function dosedcis(){
         return $this->hasMany(DoseDci::class, "dcis_id");

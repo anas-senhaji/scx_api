@@ -26,7 +26,7 @@ class DcisImport implements ToModel, WithHeadingRow
             'date' => '2025-02-01',
             'consommation'  => is_numeric($row['consommation']) ? $row['consommation'] : null,
             'prevision' => is_numeric($row['prevision']) ? $row['prevision'] : null,
-            'ecart' => is_numeric($row['ecart']) ? $row['ecart'] : null,
+            'ecart' => is_numeric($row['ecart']) ? (100 * $row['ecart']) : null,
             'dose_dcis_id' => $dosDesi->id,
             'fullname' =>$row['concat_1'],
             'ummc_id' => $ummc->id ?? null,
