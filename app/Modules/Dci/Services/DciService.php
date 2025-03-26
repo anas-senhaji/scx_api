@@ -17,7 +17,9 @@ class DciService
     public function import($request)
     {
         // dd('anas');
-        set_time_limit(300);
+        ini_set('max_execution_time', 300); // 5 minutes
+ini_set('memory_limit', '512M');    // Increase memory limit
+
         try {
             // Begin a database transaction
             DB::beginTransaction();
@@ -52,10 +54,11 @@ class DciService
         $groupedData = $data->groupBy('dci_id')->map(function ($group, $dci_id) {
             return [
                 'dci_id' => $dci_id,
+                'ummc_id' => optional($group->first())->ummc_id,
                 'dci_name' => optional($group->first()->dci)->name,
                 'average_consommation' => round($group->avg('consommation'), 2),
                 'average_prevision' => round($group->avg('prevision'), 2),
-                'average_ecart' => round($group->avg('ecart'), 2),
+                'average_ecart' => (100 * (round($group->avg('consommation'), 2) - round($group->avg('prevision'), 2)) / round($group->avg('prevision'), 2))
             ];
         })->$sortBy('average_consommation') // Sort by highest average consommation
         ->take(10) // Take the top 10

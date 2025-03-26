@@ -10,14 +10,17 @@ use App\Modules\Dci\Models\DoseDci;
 use App\Modules\Dci\Models\DoseDciStat;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Illuminate\Support\Facades\Log;
+
 
 class DcisImport implements ToModel, WithHeadingRow
 {
     
     public function model(array $row)
     {
+        Log::info('Processing row:', $row);  // Log each row
         $dci = Dci::firstOrCreate(['name' =>trim($row['dci'])]);
-        $dosDesi = DoseDci::create([
+        $dosDesi = DoseDci::firstOrCreate([
             'name'  => $row['dci_dose'],
             'dcis_id' => $dci->id,
         ]);
