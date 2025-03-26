@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class DoseDci extends Model
 {
-    use HasFactory, HasUuid, HasHorodatage;
+    use HasFactory, HasUuid;
 
     protected $table = 'dose_dcis';
     protected $guarded = ['id'];
