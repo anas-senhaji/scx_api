@@ -61,7 +61,7 @@ ini_set('memory_limit', '512M');    // Increase memory limit
                 'average_ecart' => (100 * (round($group->avg('consommation'), 2) - round($group->avg('prevision'), 2)) / round($group->avg('prevision'), 2))
             ];
         })->$sortBy('average_consommation') // Sort by highest average consommation
-        ->take(10) // Take the top 10
+        ->take(30) // Take the top 10
         ->values();
 
         return $this->jsonResponse(true, 200, 200, $groupedData);
