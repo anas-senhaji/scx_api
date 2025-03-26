@@ -39,7 +39,7 @@ class DciService
     public function fetch($request)
     {
         $request = $request->all();
-        
+        $sortBy = $request['TOP'] ?? 'sortByDesc'; //sortBy or sortByDesc
         $data = DoseDciStat::with('dci')->scopes([
             'ByStartDate' => $request['start_date'] ?? null,
             'ByEndDate' => $request['end_date'] ?? null,
@@ -56,7 +56,9 @@ class DciService
                 'average_prevision' => round($group->avg('prevision'), 2),
                 'average_ecart' => round($group->avg('ecart'), 2),
             ];
-        })->values();
+        })->$sortBy('average_consommation') // Sort by highest average consommation
+        ->take(10) // Take the top 10
+        ->values();
 
         return $this->jsonResponse(true, 200, 200, $groupedData);
     }
